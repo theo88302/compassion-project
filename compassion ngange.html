@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mobile Money Transfer System</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:#f2f2f2;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+
+.container{
+    width:400px;
+    background:white;
+    border-radius:15px;
+    overflow:hidden;
+    box-shadow:0 5px 20px rgba(0,0,0,0.2);
+}
+
+.header{
+    background:#0a3d62;
+    color:white;
+    text-align:center;
+    padding:20px;
+}
+
+.form-box{
+    padding:20px;
+}
+
+h2{
+    margin-bottom:15px;
+    color:#333;
+}
+
+input, select{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:16px;
+}
+
+button{
+    width:100%;
+    padding:13px;
+    margin-top:15px;
+    border:none;
+    border-radius:8px;
+    background:#0a3d62;
+    color:white;
+    font-size:17px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#07406b;
+}
+
+.logo-box{
+    text-align:center;
+    margin-top:15px;
+}
+
+.logo-box img{
+    width:120px;
+    height:120px;
+    object-fit:contain;
+    display:none;
+}
+
+.receiver-box{
+    margin-top:15px;
+    background:#eaf7ea;
+    padding:12px;
+    border-radius:8px;
+    display:none;
+    font-weight:bold;
+    color:green;
+    text-align:center;
+}
+
+.error{
+    color:red;
+    margin-top:10px;
+    font-size:14px;
+    text-align:center;
+}
+
+.success{
+    color:green;
+    margin-top:15px;
+    font-weight:bold;
+    text-align:center;
+}
+
+.info{
+    background:#f1f1f1;
+    padding:10px;
+    border-radius:8px;
+    margin-top:10px;
+    font-size:14px;
+}
+
+.network-title{
+    text-align:center;
+    margin-top:10px;
+    font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>Mobile Money System</h1>
+    </div>
+
+    <div class="form-box">
+
+        <h2>Register User</h2>
+
+        <input type="text" id="regName" placeholder="Owner Username">
+
+        <input type="text" id="regPhone" placeholder="Phone Number">
+
+        <button onclick="registerUser()">Register</button>
+
+        <div class="info">
+            MTN Number starts with 078 <br>
+            Airtel Number starts with 073
+        </div>
+
+        <hr style="margin:20px 0;">
+
+        <h2>Send Money</h2>
+
+        <select id="network" onchange="showLogo()">
+            <option value="">Select Network</option>
+            <option value="mtn">MTN</option>
+            <option value="airtel">Airtel</option>
+        </select>
+
+        <div class="logo-box">
+
+            <!-- MTN LOGO -->
+            <img id="mtnLogo"
+            src="logo.png">
+
+            <!-- AIRTEL LOGO -->
+            <img id="airtelLogo"
+            src="airtel.png">
+
+        </div>
+
+        <div class="network-title" id="networkText"></div>
+
+        <input 
+        type="text" 
+        id="receiverPhone" 
+        placeholder="Receiver Phone Number"
+        onkeyup="checkReceiver()"
+        >
+
+        <div class="receiver-box" id="receiverBox"></div>
+
+        <input type="number" id="amount" placeholder="Amount">
+
+        <input type="password" id="pin" placeholder="Enter PIN">
+
+        <button onclick="sendMoney()">Send Money</button>
+
+        <div class="error" id="error"></div>
+
+        <div class="success" id="success"></div>
+
+    </div>
+
+</div>
+
+<script>
+
+let users = [
+    {name:"Jean Claude", phone:"0781111111"},
+    {name:"Alice", phone:"0782222222"},
+    {name:"Patrick", phone:"0733333333"}
+];
+
+let currentReceiver = "";
+
+function registerUser(){
+
+    let name = document.getElementById("regName").value;
+    let phone = document.getElementById("regPhone").value;
+
+    if(name=="" || phone==""){
+
+        alert("Fill all fields");
+        return;
+    }
+
+    users.push({
+        name:name,
+        phone:phone
+    });
+
+    alert("User Registered Successfully");
+
+    document.getElementById("regName").value="";
+    document.getElementById("regPhone").value="";
+}
+
+function showLogo(){
+
+    let network = document.getElementById("network").value;
+
+    document.getElementById("mtnLogo").style.display="none";
+    document.getElementById("airtelLogo").style.display="none";
+
+    document.getElementById("networkText").innerHTML="";
+
+    if(network=="mtn"){
+
+        document.getElementById("mtnLogo").style.display="block";
+
+        document.getElementById("networkText").innerHTML=
+        "MTN Mobile Money";
+    }
+
+    if(network=="airtel"){
+
+        document.getElementById("airtelLogo").style.display="block";
+
+        document.getElementById("networkText").innerHTML=
+        "Airtel Money";
+    }
+}
+
+function checkReceiver(){
+
+    let phone = document.getElementById("receiverPhone").value;
+    let network = document.getElementById("network").value;
+
+    let foundUser = users.find(user => user.phone === phone);
+
+    document.getElementById("error").innerHTML="";
+    document.getElementById("success").innerHTML="";
+
+    // MTN validation
+    if(network=="mtn" && phone.length >= 3){
+
+        if(!phone.startsWith("078")){
+
+            document.getElementById("error").innerHTML=
+            "Invalid MTN phone number";
+
+            document.getElementById("receiverBox").style.display="none";
+
+            return;
+        }
+    }
+
+    // Airtel validation
+    if(network=="airtel" && phone.length >= 3){
+
+        if(!phone.startsWith("073")){
+
+            document.getElementById("error").innerHTML=
+            "Invalid Airtel phone number";
+
+            document.getElementById("receiverBox").style.display="none";
+
+            return;
+        }
+    }
+
+    // AUTO SHOW RECEIVER
+    if(foundUser){
+
+        currentReceiver = foundUser.name;
+
+        document.getElementById("receiverBox").style.display="block";
+
+        document.getElementById("receiverBox").innerHTML=
+        "✅ Receiver Name : " + foundUser.name;
+
+        // DIRECT TO PIN
+        document.getElementById("pin").focus();
+
+    }else{
+
+        document.getElementById("receiverBox").style.display="none";
+    }
+}
+
+function sendMoney(){
+
+    let network = document.getElementById("network").value;
+    let pin = document.getElementById("pin").value;
+    let amount = document.getElementById("amount").value;
+
+    document.getElementById("error").innerHTML="";
+    document.getElementById("success").innerHTML="";
+
+    if(currentReceiver==""){
+
+        document.getElementById("error").innerHTML=
+        "Receiver not found";
+
+        return;
+    }
+
+    // MTN PIN
+    if(network=="mtn"){
+
+        if(pin.length != 5){
+
+            document.getElementById("error").innerHTML=
+            "MTN PIN must contain 5 digits";
+
+            return;
+        }
+    }
+
+    // Airtel PIN
+    if(network=="airtel"){
+
+        if(pin.length != 4){
+
+            document.getElementById("error").innerHTML=
+            "Airtel PIN must contain 4 digits";
+
+            return;
+        }
+    }
+
+    document.getElementById("success").innerHTML=
+    "✅ " + amount + " RWF Sent Successfully To " + currentReceiver;
+
+    document.getElementById("pin").value="";
+    document.getElementById("amount").value="";
+}
+
+</script>
+
+</body>
+</html>
